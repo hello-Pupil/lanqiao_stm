@@ -31,7 +31,23 @@
 
 /* Private typedef -----------------------------------------------------------*/
 /* USER CODE BEGIN PTD */
+enum state{
+	powerOn=0,
+	firZero=10,               secZero=20,              thrZero=30,
+	firFir=1,firSec,firThr,   secFor,secFir,secSix,    thrSev,thrEig,thrNin
+}currentState;
+enum state currentFirState=powerOn;
+enum state currentSecState=powerOn;
+enum state secTask1=powerOn;
+enum state secTask2=powerOn;
+enum state secTask3=powerOn;
 extern struct keys key[];
+char showText[20];
+char showFirTaskNum=0;
+char showSecTaskNum=0;
+uchar firTaskNum=0;
+uchar secTaskNum=0;
+
 /* USER CODE END PTD */
 
 /* Private define ------------------------------------------------------------*/
@@ -54,6 +70,122 @@ extern struct keys key[];
 void SystemClock_Config(void);
 /* USER CODE BEGIN PFP */
 
+
+
+//void statePowerOn(void){
+//	showFirTaskNum=0;
+//	showSecTaskNum=0;
+//}
+//void stateFirZero(void){
+//	showFirTaskNum=1;
+//}
+//void stateSecZero(void){
+//	showFirTaskNum=2;
+//}
+//void stateThrZero(void){
+//	showFirTaskNum=3;
+//}
+//void stateFirFir(void){
+//	secTask1=1;
+//}
+//void stateFirSec(void){
+//	secTask1=2;
+//}
+//void stateFirThr(void){
+//	secTask1=3;
+//}
+//void stateSecFor(void){
+//	secTask2=4;
+//}
+//void stateSecFir(void){
+//	secTask2=5;
+//}
+//void stateSecSix(void){
+//	secTask2=6;
+//}
+//void stateThrSev(void){
+//	secTask3=7;
+//}
+//void stateThrEig(void){
+//	secTask3=8;
+//}
+//void stateThrNin(void){
+//	secTask3=9;
+//}
+void taskFir(void){
+	firTaskNum=(firTaskNum+1)%4;
+	if(!firTaskNum) firTaskNum=1;
+	switch(firTaskNum){
+		case 1:
+			currentFirState=firZero;
+			break;
+		case 2:
+			currentFirState=secZero;
+			break;
+		case 3:
+			currentFirState=thrZero;
+			break;
+	}
+	switch(secTaskNum){
+		case 1:{
+			if(currentFirState==firZero) secTask1=firFir;
+			if(currentFirState==secZero) secTask2=secFor;
+			if(currentFirState==thrZero) secTask3=thrSev;
+		}break;
+		
+		case 2:{
+			if(currentFirState==firZero) secTask1=firSec;
+			if(currentFirState==secZero) secTask2=secFir;
+			if(currentFirState==thrZero) secTask3=thrEig;
+		}break;
+		
+		case 3:{
+			if(currentFirState==firZero) secTask1=firThr;
+			if(currentFirState==secZero) secTask2=secSix;
+			if(currentFirState==thrZero) secTask3=thrNin;
+		}break;
+	}
+	switch(currentFirState){
+		case firZero:currentSecState=secTask1;break;
+		case secZero:currentSecState=secTask2;break;
+		case thrZero:currentSecState=secTask3;break;
+		default :;
+	}
+}
+void taskSec(void){
+	secTaskNum=(secTaskNum+1)%4;
+	if(!secTaskNum) secTaskNum=1;
+	switch(secTaskNum){
+		case 1:{
+			if(currentFirState==firZero) secTask1=firFir;
+			if(currentFirState==secZero) secTask2=secFor;
+			if(currentFirState==thrZero) secTask3=thrSev;
+		}break;
+		
+		case 2:{
+			if(currentFirState==firZero) secTask1=firSec;
+			if(currentFirState==secZero) secTask2=secFir;
+			if(currentFirState==thrZero) secTask3=thrEig;
+		}break;
+		
+		case 3:{
+			if(currentFirState==firZero) secTask1=firThr;
+			if(currentFirState==secZero) secTask2=secSix;
+			if(currentFirState==thrZero) secTask3=thrNin;
+		}break;
+	}
+	switch(currentFirState){
+		case firZero:currentSecState=secTask1;break;
+		case secZero:currentSecState=secTask2;break;
+		case thrZero:currentSecState=secTask3;break;
+		default :;
+	}
+} 
+void showTask(void){
+
+	sprintf(showText,"         %d%d        ",currentFirState/10,currentSecState);
+	LCD_DisplayStringLine(Line6, (unsigned char *)showText);
+}
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -103,32 +235,22 @@ int main(void)
 	HAL_TIM_Base_Start_IT(&htim3);
 
     LCD_Clear(Green);
-    LCD_DisplayStringLine(Line4, (unsigned char *)"    hello_W   ");
-    //HAL_Delay(1000);
-	
-	//LCD_Clear(Green);
-	//LCD_DisplayStringLine(Line6, (unsigned char *)"    key1_Down   ");
-
+    LCD_DisplayStringLine(Line2, (unsigned char *)"     hello_Pupil    ");
   while (1)
   {
     /* USER CODE END WHILE */
-
+	
     /* USER CODE BEGIN 3 */
+	showTask();
 	if(key[0].keyValue==1){
-		//LCD_Clear(Green);
-		LCD_DisplayStringLine(Line6, (unsigned char *)"    key1_Down   ");
+		LCD_ClearLine(Line6);
+		taskFir();
+		key[0].keyValue=0;
 	}
 	if(key[1].keyValue==1){
-		//LCD_Clear(Green);
-		LCD_DisplayStringLine(Line6, (unsigned char *)"    key2_Down   ");
-	}
-	if(key[2].keyValue==1){
-		//LCD_Clear(Green);
-		LCD_DisplayStringLine(Line6, (unsigned char *)"    key3_Down   ");
-	}
-	if(key[3].keyValue==1){
-		//LCD_Clear(Green);
-		LCD_DisplayStringLine(Line6, (unsigned char *)"    key4_Down   ");
+		LCD_ClearLine(Line6);
+		taskSec();
+		key[1].keyValue=0;
 	}
   }
   /* USER CODE END 3 */
